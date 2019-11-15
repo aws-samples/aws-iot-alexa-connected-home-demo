@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform:
+- 'AWS::Serverless-2016-10-31'
+
+Parameters:
+  ThingName:
+    Type: String
+    Description: AWS IoT Thing Name for use with this demo
+  IoTAtsEndpoint:
+    Type: String
+    Description: The AWS IoT ATS Endpoint domain name for your account
+
+Resources:
+  ConnectedHomeDemoFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'aws-iot-connected-home-demo-function'
+      Runtime: nodejs10.x
+      CodeUri: function/
+      Handler: index.handler
+      Description: Triggered by an Alexa skill, this demo function updates the shadow of
+      Timeout: 30
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          IOT_THING_NAME: !Ref ThingName
+          IOT_ATS_ENDPOINT: !Ref IoTAtsEndpoint
+  LambdaExecutionRole:
+    Description: Creating service role in IAM for AWS Lambda
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'aws-iot-connected-home-demo-function-role'
+      Policies:
+        -
+          PolicyName: !Sub 'iot-update-${ThingName}-thing-shadow'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              -
+                Effect: 'Allow'
+                Action:
+                  - 'iot:GetThingShadow'
+                  - 'iot:UpdateThingShadow'
+                Resource: !Sub 'arn:aws:iot:*:${AWS::AccountId}:thing/${ThingName}'
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [lambda.amazonaws.com]
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        -  arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
