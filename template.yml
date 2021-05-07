@@ -15,7 +15,7 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       FunctionName: 'aws-iot-connected-home-demo-function'
-      Runtime: nodejs10.x
+      Runtime: nodejs14.x
       CodeUri: function/
       Handler: index.handler
       Description: Triggered by an Alexa skill, this demo function updates the shadow of
